@@ -12,7 +12,7 @@ const tagRoutes = require('./routes/tags');
 const conversationRoutes = require('./routes/conversations');
 
 const app = express();
-const port = process.env.PORT || 234;
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 
