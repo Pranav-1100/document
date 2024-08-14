@@ -8,6 +8,8 @@ const documentRoutes = require('./routes/document');
 const { User, Document } = require('./models');
 const { sequelize } = require('./config/db');
 const documentTypeRoutes = require('./routes/documentTypes');
+const tagRoutes = require('./routes/tags');
+const conversationRoutes = require('./routes/conversations');
 
 const app = express();
 const port = process.env.PORT || 234;
@@ -34,6 +36,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api', authMiddleware);
 app.use('/api/documents', documentRoutes);
 app.use('/api/document-types', documentTypeRoutes);
+app.use('/api/tags', tagRoutes);
+app.use('/api/conversations', conversationRoutes);
 
 async function syncDatabase() {
   try {
