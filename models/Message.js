@@ -1,35 +1,31 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/db');
 
-const Document = sequelize.define('Document', {
+const Message = sequelize.define('Message', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  title: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
   content: {
     type: DataTypes.TEXT,
     allowNull: false
   },
-  userId: {
+  role: {
+    type: DataTypes.ENUM('user', 'assistant'),
+    allowNull: false
+  },
+  conversationId: {
     type: DataTypes.UUID,
     allowNull: false
   },
-  status: {
-    type: DataTypes.ENUM('draft', 'published', 'archived'),
-    defaultValue: 'draft'
-  },
-  typeId: {
+  authorId: {
     type: DataTypes.UUID,
-    allowNull: true
+    allowNull: false
   }
 }, {
-  tableName: 'documents',
+  tableName: 'messages',
   timestamps: true
 });
 
-module.exports = Document;
+module.exports = Message;
