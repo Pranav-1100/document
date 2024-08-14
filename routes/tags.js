@@ -106,4 +106,120 @@ router.get('/search', async (req, res) => {
   }
 });
 
+// Get tags with pagination
+router.get('/paginated', async (req, res) => {
+    try {
+      const { page, limit } = req.query;
+      const tags = await TagService.getTagsWithPagination(parseInt(page), parseInt(limit), req.user.id);
+      res.json(tags);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  // Create a tag category
+  router.post('/categories', async (req, res) => {
+    try {
+      const { name, description } = req.body;
+      const category = await TagService.createTagCategory(name, description);
+      res.status(201).json(category);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+  
+  // Assign a tag to a category
+  router.post('/:id/assign-category', async (req, res) => {
+    try {
+      const { categoryId } = req.body;
+      const tag = await TagService.assignTagToCategory(req.params.id, categoryId);
+      res.json(tag);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+  
+  // Merge tags
+  router.post('/merge', async (req, res) => {
+    try {
+      const { sourceTagId, targetTagId } = req.body;
+      const result = await TagService.mergeTags(sourceTagId, targetTagId);
+      res.json(result);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+  
+  // Get tag usage analytics
+  router.get('/analytics', async (req, res) => {
+    try {
+      const { startDate, endDate } = req.query;
+      const analytics = await TagService.getTagUsageAnalytics(new Date(startDate), new Date(endDate));
+      res.json(analytics);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  // Add a tag to favorites
+  router.post('/favorites/:id', async (req, res) => {
+    try {
+      const result = await TagService.addFavoriteTag(req.user.id, req.params.id);
+      res.json(result);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+  
+  // Remove a tag from favorites
+  router.delete('/favorites/:id', async (req, res) => {
+    try {
+      const result = await TagService.removeFavoriteTag(req.user.id, req.params.id);
+      res.json(result);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+  
+  // Get favorite tags
+  router.get('/favorites', async (req, res) => {
+    try {
+      const favoriteTags = await TagService.getFavoriteTags(req.user.id);
+      res.json(favoriteTags);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  // Suggest tags for a document
+  router.get('/suggest/:documentId', async (req, res) => {
+    try {
+      const suggestedTags = await TagService.suggestTagsForDocument(req.params.documentId);
+      res.json(suggestedTags);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  // Export tags
+  router.get('/export', async (req, res) => {
+    try {
+      const tags = await TagService.exportTags();
+      res.json(tags);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  // Import tags
+  router.post('/import', async (req, res) => {
+    try {
+      const { tags } = req.body;
+      const importedTags = await TagService.importTags(tags);
+      res.json(importedTags);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
 module.exports = router;
