@@ -1,24 +1,10 @@
-// database.js
 const path = require('path');
-const { Sequelize, DataTypes } = require('sequelize');
+const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize({
   dialect: 'sqlite',
   storage: path.join(__dirname, 'database.sqlite'),
   logging: false //console.log
-});
-
-// Define the User model
-const User = sequelize.define('User', {
-  username: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true
-  }
 });
 
 const initDatabase = async () => {
@@ -35,6 +21,5 @@ const initDatabase = async () => {
 module.exports = {
   sequelize,
   initDatabase,
-  User,
-  Op: Sequelize.Op
+  Sequelize
 };

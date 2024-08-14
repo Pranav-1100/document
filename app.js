@@ -4,7 +4,8 @@ const express = require('express');
 const { initDatabase } = require('./config/db');
 const authMiddleware = require('./middleware/auth');
 const authRoutes = require('./routes/auth');
-const { User } = require('./models');
+const documentRoutes = require('./routes/document');
+const { User, Document } = require('./models');
 const { sequelize } = require('./config/db');
 
 const app = express();
@@ -28,15 +29,17 @@ app.use(express.json());
 // Public routes
 app.use('/api/auth', authRoutes);
 
-// Apply authMiddleware to all routes except /api/auth
+// Protected routes
 app.use('/api', authMiddleware);
+app.use('/api/documents', documentRoutes);
 
 async function syncDatabase() {
   try {
     await User.sync({ alter: true });
-    console.log('User model synced successfully');
+    await Document.sync({ alter: true });
+    console.log('Models synced successfully');
   } catch (error) {
-    console.error('Error syncing User model:', error);
+    console.error('Error syncing models:', error);
   }
 }
 
