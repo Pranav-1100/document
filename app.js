@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const documentRoutes = require('./routes/document');
 const { User, Document } = require('./models');
 const { sequelize } = require('./config/db');
+const documentTypeRoutes = require('./routes/documentTypes');
 
 const app = express();
 const port = process.env.PORT || 234;
@@ -32,6 +33,7 @@ app.use('/api/auth', authRoutes);
 // Protected routes
 app.use('/api', authMiddleware);
 app.use('/api/documents', documentRoutes);
+app.use('/api/document-types', documentTypeRoutes);
 
 async function syncDatabase() {
   try {
