@@ -25,7 +25,7 @@ class OpenAIService {
     try {
       const stream = await this.openai.chat.completions.create({
         model: "gpt-3.5-turbo",
-        messages: messages,
+        messages: messages.filter(msg => msg.content != null), // Filter out null content
         stream: true,
       });
 

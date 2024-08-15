@@ -56,15 +56,24 @@ class DocumentService {
   }
 
   static async streamingChat(userId, documentId, messages, res) {
-    const document = await this.getDocumentById(userId, documentId);
-    if (!document) {
-      throw new Error('Document not found');
+    try {
+      const document = await this.getDocumentById(userId, documentId);
+      if (!document) {
+        throw new Error('Document not found');
+      }
+      
+      const contextMessage = { role: 'system', content: `You are a helpful assistant. Use the following document as context for answering questions: ${document.content}` };
+      const allMessages = [contextMessage, ...messages].filter(msg => msg && msg.content && msg.content.trim() !== '');
+  
+      await OpenAIService.generateStreamingChatResponse(allMessages, res);
+    } catch (error) {
+      console.error('Error in streaming chat:', error);
+      if (!res.headersSent) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+      }
+      res.write(`data: ${JSON.stringify({ type: 'error', content: error.message })}\n\n`);
+      throw error; // Re-throw the error to be caught in the router
     }
-    
-    const contextMessage = { role: 'system', content: `You are a helpful assistant. Use the following document as context for answering questions: ${document.content}` };
-    const allMessages = [contextMessage, ...messages];
-
-    return OpenAIService.generateStreamingChatResponse(allMessages, res);
   }
 }
 

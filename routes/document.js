@@ -79,7 +79,7 @@ router.post('/:id/ask', async (req, res) => {
 });
 
 // Streaming chat about a document
-router.post('/:id/chat/stream', (req, res) => {
+router.post('/:id/chat/stream', async (req, res) => {
   const { messages } = req.body;
   
   res.writeHead(200, {
@@ -88,12 +88,19 @@ router.post('/:id/chat/stream', (req, res) => {
     'Connection': 'keep-alive'
   });
 
-  DocumentService.streamingChat(req.user.id, req.params.id, messages, res)
-    .catch(error => {
-      console.error('Error in streaming response:', error);
-      res.write(`data: ${JSON.stringify({ type: 'error', content: error.message })}\n\n`);
+  try {
+    await DocumentService.streamingChat(req.user.id, req.params.id, messages, res);
+  } catch (error) {
+    console.error('Error in streaming response:', error);
+    if (!res.headersSent) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+    }
+    res.write(`data: ${JSON.stringify({ type: 'error', content: error.message })}\n\n`);
+  } finally {
+    if (!res.finished) {
       res.end();
-    });
+    }
+  }
 });
 
 module.exports = router;
