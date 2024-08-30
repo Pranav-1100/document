@@ -80,6 +80,8 @@ router.post('/:id/ask', async (req, res) => {
 
 // Streaming chat about a document
 router.post('/:id/chat/stream', async (req, res) => {
+  console.log('Received chat stream request for document:', req.params.id);
+  console.log('Messages:', req.body.messages);
   const { messages } = req.body;
   
   res.writeHead(200, {
