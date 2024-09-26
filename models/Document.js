@@ -26,6 +26,10 @@ const Document = sequelize.define('Document', {
   typeId: {
     type: DataTypes.UUID,
     allowNull: true
+  },
+  embedding: {
+    type: DataTypes.TEXT,  // Store embedding as JSON string
+    allowNull: true
   }
 }, {
   tableName: 'documents',

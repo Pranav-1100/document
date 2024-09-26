@@ -1,9 +1,12 @@
 const { Document } = require('../models');
 const OpenAIService = require('./openaiService');
+const DocumentEmbeddingService = require('./documentEmbeddingService');
 
 class DocumentService {
   static async createDocument(userId, title, content) {
-    return await Document.create({ userId, title, content });
+    const document = await Document.create({ userId, title, content });
+    await DocumentEmbeddingService.indexDocument(document);
+    return document;
   }
 
   static async getAllDocuments(userId) {
@@ -19,7 +22,11 @@ class DocumentService {
     if (!document) {
       throw new Error('Document not found');
     }
-    return await document.update(updates);
+    const updatedDocument = await document.update(updates);
+    if (updates.content) {
+      await DocumentEmbeddingService.indexDocument(updatedDocument);
+    }
+    return updatedDocument;
   }
 
   static async deleteDocument(userId, documentId) {
@@ -48,9 +55,11 @@ class DocumentService {
     if (!document) {
       throw new Error('Document not found');
     }
+    const similarDocuments = await DocumentEmbeddingService.searchSimilarDocuments(question, 3);
+    const context = similarDocuments.map(doc => doc.content).join('\n\n');
     const answer = await OpenAIService.generateChatResponse([
       { role: 'system', content: 'You are a helpful assistant that answers questions based on the given context.' },
-      { role: 'user', content: `Context: ${document.content}\n\nQuestion: ${question}` }
+      { role: 'user', content: `Context: ${context}\n\nDocument: ${document.content}\n\nQuestion: ${question}` }
     ]);
     return answer;
   }
@@ -62,7 +71,11 @@ class DocumentService {
         throw new Error('Document not found');
       }
       
-      const contextMessage = { role: 'system', content: `You are a helpful assistant. Use the following document as context for answering questions: ${document.content}` };
+      const lastUserMessage = messages[messages.length - 1].content;
+      const similarDocuments = await DocumentEmbeddingService.searchSimilarDocuments(lastUserMessage, 3);
+      const context = similarDocuments.map(doc => doc.content).join('\n\n');
+
+      const contextMessage = { role: 'system', content: `You are a helpful assistant. Use the following documents as context for answering questions: ${context}\n\nMain document: ${document.content}` };
       const allMessages = [contextMessage, ...messages].filter(msg => msg && msg.content && msg.content.trim() !== '');
   
       await OpenAIService.generateStreamingChatResponse(allMessages, res);
@@ -72,7 +85,7 @@ class DocumentService {
         res.writeHead(500, { 'Content-Type': 'application/json' });
       }
       res.write(`data: ${JSON.stringify({ type: 'error', content: error.message })}\n\n`);
-      throw error; // Re-throw the error to be caught in the router
+      throw error;
     }
   }
 }
